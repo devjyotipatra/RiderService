@@ -5,16 +5,19 @@ package riderservice.util;
  */
 
 
-public class Coordinates {
+public class DriverCoordinate {
+    private int driverId;
     private double lat;
     private double lon;
 
-    public Coordinates(double lat, double lon) {
+    public DriverCoordinate(int driverId, double lat, double lon) {
+        this.driverId = driverId;
         this.lat = lat;
         this.lon = lon;
     }
 
-    public Coordinates(float lat, float lon) {
+    public DriverCoordinate(int driverId, float lat, float lon) {
+        this.driverId = driverId;
         this.lat = lat;
         this.lon = lon;
     }
@@ -26,6 +29,10 @@ public class Coordinates {
 
     public double getLongitude() {
         return lon;
+    }
+
+    public int getDriverId() {
+        return driverId;
     }
 
 
