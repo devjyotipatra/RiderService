@@ -38,14 +38,14 @@ public class DriverLocationStore<P> {
     }
 
 
-    public List<P> getNearestNeighbors(final P queryPoint, final int maxResults) {
+    public List<P> getNearestNeighbors(final P queryPoint, final double radius, final int maxResults) {
         final List<P> nearestNeighbors;
 
         if (this.rootNode == null) {
             nearestNeighbors = null;
         } else {
             final NearestNeighborFinder<P> collector =
-                    new NearestNeighborFinder<>(queryPoint, this.distanceFunction, maxResults);
+                    new NearestNeighborFinder<>(queryPoint, this.distanceFunction, radius, maxResults);
 
             this.rootNode.collectNearestNeighbors(collector);
 
@@ -93,7 +93,7 @@ public class DriverLocationStore<P> {
 
         ls.printTree(ls.rootNode);
 
-        System.out.println(ls.getNearestNeighbors(new DriverCoordinate(-1, 12.894160, 77.609070), 4));
+        System.out.println(ls.getNearestNeighbors(new DriverCoordinate(-1, 12.894160, 77.609070), 0.5, 4));
     }
 
 }

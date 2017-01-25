@@ -99,7 +99,6 @@ class LocationNode<P> {
         int i = 0;
         int j = coordinates.size() - 1;
 
-        // This is, essentially, a single swapping quicksort iteration
         for (; i <= j; i++) {
             if (distanceFunction.getDistance(partitionPoint, coordinates.get(i)) > threshold) {
                 for (; j >= i; j--) {
@@ -151,33 +150,24 @@ class LocationNode<P> {
 
     public void collectNearestNeighbors(final NearestNeighborFinder<P> collector) {
         if (this.coordinates == null) {
-            final LocationNode<P> firstNodeSearched = this.getChildNodeForPoint(collector.getQueryPoint());
+            LocationNode<P> firstNodeSearched = this.getChildNodeForPoint(collector.getQueryPoint());
             firstNodeSearched.collectNearestNeighbors(collector);
 
-            final double distanceFromVantagePointToQueryPoint =
+            double distanceFromVantagePointToQueryPoint =
                     this.distanceFunction.getDistance(this.partitionPoint, collector.getQueryPoint());
 
-            final double distanceFromQueryPointToFarthestPoint =
+            double distanceFromQueryPointToFarthestPoint =
                     this.distanceFunction.getDistance(collector.getQueryPoint(), collector.getFarthestPoint());
 
             if (firstNodeSearched == this.near) {
-                // We've already searched the node that contains points within this node's threshold. We also want to
-                // search the farther node if the distance from the query point to the most distant point in the
-                // neighbor collector is greater than the distance from the query point to this node's threshold, since
-                // there could be a point outside of this node that's closer than the most distant neighbor we've found
-                // so far.
 
-                final double distanceFromQueryPointToThreshold = this.threshold - distanceFromVantagePointToQueryPoint;
+                double distanceFromQueryPointToThreshold = this.threshold - distanceFromVantagePointToQueryPoint;
 
                 if (distanceFromQueryPointToFarthestPoint > distanceFromQueryPointToThreshold) {
                     this.far.collectNearestNeighbors(collector);
                 }
             } else {
-                // We've already searched the node that contains points beyond this node's threshold. We want to search
-                // the within-threshold node if it's "easier" to get from the query point to this node's region than it
-                // is to get from the query point to the most distant match, since there could be a point within this
-                // node's threshold that's closer than the most distant match.
-                final double distanceFromQueryPointToThreshold = distanceFromVantagePointToQueryPoint - this.threshold;
+                double distanceFromQueryPointToThreshold = distanceFromVantagePointToQueryPoint - this.threshold;
 
                 if(distanceFromQueryPointToThreshold <= distanceFromQueryPointToFarthestPoint) {
                     this.near.collectNearestNeighbors(collector);

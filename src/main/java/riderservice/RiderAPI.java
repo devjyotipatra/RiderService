@@ -1,11 +1,15 @@
 package riderservice;
 
 import com.google.gson.Gson;
+import com.sun.istack.internal.NotNull;
+import riderservice.util.DriverCoordinate;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,6 +17,8 @@ import java.util.Map;
  */
 @Path("/drivers")
 public  class RiderAPI {
+
+    private static final double EARTHDIAM = 6371000.0;
 
     private static RiderAPIHandler handler = RiderAPIHandler.getHandlerInstance();
 
@@ -29,9 +35,15 @@ public  class RiderAPI {
     }
 
 
-    @Path("/llb")
     @GET
-    public Response whereIsMyDriver() {
-        return Response.ok("{}", MediaType.APPLICATION_JSON).build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response whereIsMyDriver(@NotNull @QueryParam("latitude") double latitude,
+                                    @NotNull @QueryParam("longitude") double longitude,
+                                    @DefaultValue("500")  @QueryParam("radius") int radius,
+                                    @DefaultValue("10")  @QueryParam("latitude") int limit) {
+
+        List<String> listOfDrivers = handler.getDriverCoordinate(latitude, longitude, radius/EARTHDIAM, limit);
+        System.out.println(listOfDrivers);
+        return Response.ok(new Gson().toJson(listOfDrivers), MediaType.APPLICATION_JSON).build();
     }
 }

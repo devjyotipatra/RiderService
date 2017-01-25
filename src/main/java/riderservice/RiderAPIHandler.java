@@ -7,10 +7,7 @@ import riderservice.util.CoordDistanceFunction;
 import riderservice.util.CoordNodePartitioner;
 import riderservice.util.DriverCoordinate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static java.lang.Thread.sleep;
 
@@ -68,7 +65,25 @@ public class RiderAPIHandler {
         } catch (ValueException ex) {
             System.out.println("Latitude or Longitude format incorrect "+ ex.toString());
         }
-                                         ;
+
+    }
+
+
+    public List<String> getDriverCoordinate(double latitude, double longitude, double radius, int limit) {
+        List<String> drivers = new ArrayList<String>();
+
+        StringBuilder sb = new StringBuilder();
+        List<DriverCoordinate> listOfDrivers = store.getNearestNeighbors(new DriverCoordinate(-1, latitude, longitude), radius, limit);
+        for(DriverCoordinate driver : listOfDrivers) {
+            sb.append("{").append("id:").append(driver.getDriverId())
+                    .append(",latitude:").append(driver.getLatitude())
+                    .append("longitude:").append(driver.getLongitude())
+                    .append("}");
+            drivers.add(sb.toString());
+            sb.setLength(0);
+        }
+
+        return drivers;
     }
 
 
