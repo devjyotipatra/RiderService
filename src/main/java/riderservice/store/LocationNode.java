@@ -7,6 +7,7 @@ package riderservice.store;
 
 import riderservice.util.DistanceFunction;
 import riderservice.util.NodePartitioner;
+import riderservice.util.NearestNeighborFinder;
 
 import java.util.*;
 
@@ -36,11 +37,6 @@ class LocationNode<P> {
      * than the specified maximum capacity, the new node will partition the collection of points into child
      * nodes using the given distance function.
      *
-     * @param coordinates      the collection of points to store in or below this node
-     * @param distanceFunction the distance function to use when partitioning points
-     * @param cardinality      the desired maximum capacity of this node; this node may contain more points than the given
-     *                         capacity if the given collection of points cannot be partitioned (for example, because all of the points are an
-     *                         equal distance away from the vantage point)
      */
     public LocationNode(final Collection<P> coordinates, final DistanceFunction<P> distanceFunction,
                         NodePartitioner<P> partitioner, final int cardinality) {
@@ -147,6 +143,52 @@ class LocationNode<P> {
         }
     }
 
+
+    private LocationNode<P> getChildNodeForPoint(final P point) {
+        return this.distanceFunction.getDistance(this.partitionPoint, point) <= this.threshold ? this.near : this.far;
+    }
+
+
+    public void collectNearestNeighbors(final NearestNeighborFinder<P> collector) {
+        if (this.coordinates == null) {
+            final LocationNode<P> firstNodeSearched = this.getChildNodeForPoint(collector.getQueryPoint());
+            firstNodeSearched.collectNearestNeighbors(collector);
+
+            final double distanceFromVantagePointToQueryPoint =
+                    this.distanceFunction.getDistance(this.partitionPoint, collector.getQueryPoint());
+
+            final double distanceFromQueryPointToFarthestPoint =
+                    this.distanceFunction.getDistance(collector.getQueryPoint(), collector.getFarthestPoint());
+
+            if (firstNodeSearched == this.near) {
+                // We've already searched the node that contains points within this node's threshold. We also want to
+                // search the farther node if the distance from the query point to the most distant point in the
+                // neighbor collector is greater than the distance from the query point to this node's threshold, since
+                // there could be a point outside of this node that's closer than the most distant neighbor we've found
+                // so far.
+
+                final double distanceFromQueryPointToThreshold = this.threshold - distanceFromVantagePointToQueryPoint;
+
+                if (distanceFromQueryPointToFarthestPoint > distanceFromQueryPointToThreshold) {
+                    this.far.collectNearestNeighbors(collector);
+                }
+            } else {
+                // We've already searched the node that contains points beyond this node's threshold. We want to search
+                // the within-threshold node if it's "easier" to get from the query point to this node's region than it
+                // is to get from the query point to the most distant match, since there could be a point within this
+                // node's threshold that's closer than the most distant match.
+                final double distanceFromQueryPointToThreshold = distanceFromVantagePointToQueryPoint - this.threshold;
+
+                if(distanceFromQueryPointToThreshold <= distanceFromQueryPointToFarthestPoint) {
+                    this.near.collectNearestNeighbors(collector);
+                }
+            }
+        } else {
+            for (final P point : this.coordinates) {
+                collector.offerPoint(point);
+            }
+        }
+    }
 
     public ArrayList<P> getCoordinates() {
         return this.coordinates;

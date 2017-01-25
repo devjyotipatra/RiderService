@@ -5,11 +5,9 @@ import java.util.Comparator;
 /**
  * Created by 17349 on 23/01/17.
  */
-public class DistanceFunction<P> {
+public interface DistanceFunction<P> {
 
-    public double getDistance(P point1, P point2) {
-
-    }
+    public double getDistance(P point1, P point2);
 
 
     public static class DistanceComparator<P> implements Comparator<P> {

@@ -4,6 +4,7 @@ import riderservice.util.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by 17349 on 23/01/17.
@@ -11,7 +12,7 @@ import java.util.Collection;
 public class DriverLocationStore<P> {
 
     private final DistanceFunction<P> distanceFunction;
-    NodePartitioner<P> partitioner;
+    private NodePartitioner<P> partitioner;
     private final int nodeCardinality;
 
     private LocationNode<P> rootNode;
@@ -34,6 +35,34 @@ public class DriverLocationStore<P> {
 
             this.rootNode.partition();
         }
+    }
+
+
+    public List<P> getNearestNeighbors(final P queryPoint, final int maxResults) {
+        final List<P> nearestNeighbors;
+
+        if (this.rootNode == null) {
+            nearestNeighbors = null;
+        } else {
+            final NearestNeighborFinder<P> collector =
+                    new NearestNeighborFinder<>(queryPoint, this.distanceFunction, maxResults);
+
+            this.rootNode.collectNearestNeighbors(collector);
+
+            nearestNeighbors = collector.toSortedList();
+        }
+
+        return nearestNeighbors;
+    }
+
+
+    public void setRootNode(LocationNode<P> rootNode) {
+        this.rootNode = rootNode;
+    }
+
+
+    public LocationNode<P> getRootNode() {
+        return rootNode;
     }
 
 
@@ -63,6 +92,8 @@ public class DriverLocationStore<P> {
                 new CoordNodePartitioner(), 6);
 
         ls.printTree(ls.rootNode);
+
+        System.out.println(ls.getNearestNeighbors(new DriverCoordinate(-1, 12.894160, 77.609070), 4));
     }
 
 }
